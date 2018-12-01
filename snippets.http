@@ -1,0 +1,47 @@
+# For a quick start check out our HTTP Requests collection (Tools|HTTP Client|Open HTTP Requests Collection).
+#
+# Following HTTP Request Live Templates are available:
+# * 'gtrp' and 'gtr' create a GET request with or without query parameters;
+# * 'ptr' and 'ptrp' create a POST request with a simple or parameter-like body;
+# * 'mptr' and 'fptr' create a POST request to submit a form with a text or file field (multipart/form-data);
+POST http://localhost:8080/snippets
+Content-Type: application/json
+
+{
+  "snippet": {
+    "text": "mysnippet"
+  }
+}
+
+###
+GET http://localhost:8080/snippets
+Accept: application/json
+
+###
+POST http://localhost:8080/login-register
+Content-Type: application/json
+
+{
+  "user": "test",
+  "password": "test"
+}
+
+> {%
+// noinspection JSUnresolvedVariable
+client.assert(typeof response.body.token !== "undefined", "No token returned");
+// noinspection JSUnresolvedVariable
+client.global.set("auth_token", response.body.token);
+%}
+
+###
+POST http://localhost:8080/snippets
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "snippet": {
+    "text": "hello-world-jwt"
+  }
+}
+
+###
