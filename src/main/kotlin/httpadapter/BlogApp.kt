@@ -1,9 +1,10 @@
-package blog
+package httpadapter
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import com.fasterxml.jackson.databind.SerializationFeature
+import domain.Snippet
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -50,8 +51,6 @@ class LoginRegister(val user: String, val password: String)
 data class PostSnippet(val snippet: PostSnippet.Text) {
     data class Text(val text: String)
 }
-
-data class Snippet(val user: String, val text: String)
 
 val snippet: MutableList<Snippet> = Collections.synchronizedList(
     mutableListOf(
