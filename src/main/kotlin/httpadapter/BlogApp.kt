@@ -54,13 +54,6 @@ data class PostSnippet(val snippet: PostSnippet.Text) {
     data class Text(val text: String)
 }
 
-val snippet: MutableList<Snippet> = Collections.synchronizedList(
-    mutableListOf(
-        Snippet(nextSnippetId(), user = "test", text = "hello"),
-        Snippet(nextSnippetId(), user = "test", text = "world")
-    )
-)
-
 class InvalidCredentialsException(message: String) : RuntimeException(message)
 
 fun Application.main() {
@@ -112,16 +105,14 @@ fun Application.main() {
             }
             route("/snippets") {
                 get {
-                    call.respond(mapOf("snippet" to synchronized(snippet) {
-                        InMemorySnippetRepository.fetchAll()
-                    }))
+                    call.respond(mapOf("snippet" to InMemorySnippetRepository.fetchAll()))
                 }
                 authenticate("myjwt1") {
                     post {
                         val post = call.receive<PostSnippet>()
                         val principal = call.principal<UserIdPrincipal>() ?: error("No principal")
 
-                        snippet += Snippet(nextSnippetId(), principal.name, post.snippet.text)
+                        InMemorySnippetRepository.save(Snippet(nextSnippetId(), principal.name, post.snippet.text))
                         call.respond(mapOf("OK" to true))
                     }
                 }
