@@ -110,7 +110,7 @@ fun Application.main() {
             }
             route("/snippets") {
                 get {
-                    call.respond(mapOf("snippet" to fetchSnippetAll()))
+                    call.respond(mapOf("snippet" to fetchSnippetAll().toJSONFormat()))
                 }
                 authenticate("myjwt1") {
                     post {
