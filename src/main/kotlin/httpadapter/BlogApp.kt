@@ -4,7 +4,8 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import com.fasterxml.jackson.databind.SerializationFeature
-import domain.Snippet
+import domain.snippet.Snippet
+import domain.snippet.nextSnippetId
 import io.ktor.application.Application
 import io.ktor.application.call
 import io.ktor.application.install
@@ -54,8 +55,8 @@ data class PostSnippet(val snippet: PostSnippet.Text) {
 
 val snippet: MutableList<Snippet> = Collections.synchronizedList(
     mutableListOf(
-        Snippet(user = "test", text = "hello"),
-        Snippet(user = "test", text = "world")
+        Snippet(nextSnippetId(), user = "test", text = "hello"),
+        Snippet(nextSnippetId(), user = "test", text = "world")
     )
 )
 
@@ -112,7 +113,7 @@ fun Application.main() {
                         val post = call.receive<PostSnippet>()
                         val principal = call.principal<UserIdPrincipal>() ?: error("No principal")
 
-                        snippet += Snippet(principal.name, post.snippet.text)
+                        snippet += Snippet(nextSnippetId(), principal.name, post.snippet.text)
                         call.respond(mapOf("OK" to true))
                     }
                 }
