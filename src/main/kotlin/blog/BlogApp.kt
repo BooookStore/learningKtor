@@ -10,7 +10,9 @@ import io.ktor.application.install
 import io.ktor.auth.*
 import io.ktor.auth.jwt.jwt
 import io.ktor.features.ContentNegotiation
+import io.ktor.features.StatusPages
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.jackson.jackson
 import io.ktor.request.receive
 import io.ktor.response.respond
@@ -58,9 +60,21 @@ val snippet: MutableList<Snippet> = Collections.synchronizedList(
     )
 )
 
+class InvalidCredentialsException(message: String) : RuntimeException(message)
+
 fun Application.main() {
     val simpleJWT = SimpleJWT("my-super-secret-for-jwt")
     embeddedServer(Netty, 8080) {
+        install(StatusPages) {
+            exception<InvalidCredentialsException> { exception ->
+                call.respond(
+                    HttpStatusCode.Unauthorized, mapOf(
+                        "OK" to false,
+                        "error" to (exception.message ?: "")
+                    )
+                )
+            }
+        }
         install(Authentication) {
             basic(name = "myauth1") {
                 realm = "myrealm"
@@ -82,7 +96,7 @@ fun Application.main() {
             post("/login-register") {
                 val post = call.receive<LoginRegister>()
                 val user = users.getOrPut(post.user) { User(post.user, post.password) }
-                if (user.password != post.password) error("Invalid credentials.")
+                if (user.password != post.password) throw InvalidCredentialsException("Invalid credentials")
                 call.respond(mapOf("token" to simpleJWT.sign(user.name)))
             }
             get("/") {
