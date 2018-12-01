@@ -1,5 +1,8 @@
 package httpadapter
 
+import applicationservice.AddSnippetCommand
+import applicationservice.addSnippet
+import applicationservice.fetchSnippetAll
 import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
@@ -59,10 +62,12 @@ class InvalidCredentialsException(message: String) : RuntimeException(message)
 fun Application.main() {
 
     // init application state
-    InMemorySnippetRepository.saveAll(listOf(
-        Snippet(nextSnippetId(), user = "test", text = "hello"),
-        Snippet(nextSnippetId(), user = "test", text = "world")
-    ))
+    InMemorySnippetRepository.saveAll(
+        listOf(
+            Snippet(nextSnippetId(), user = "test", text = "hello"),
+            Snippet(nextSnippetId(), user = "test", text = "world")
+        )
+    )
 
     val simpleJWT = SimpleJWT("my-super-secret-for-jwt")
     embeddedServer(Netty, 8080) {
@@ -105,14 +110,16 @@ fun Application.main() {
             }
             route("/snippets") {
                 get {
-                    call.respond(mapOf("snippet" to InMemorySnippetRepository.fetchAll()))
+                    call.respond(mapOf("snippet" to fetchSnippetAll()))
                 }
                 authenticate("myjwt1") {
                     post {
                         val post = call.receive<PostSnippet>()
                         val principal = call.principal<UserIdPrincipal>() ?: error("No principal")
 
-                        InMemorySnippetRepository.save(Snippet(nextSnippetId(), principal.name, post.snippet.text))
+                        val command = AddSnippetCommand(principal.name, post.snippet.text)
+                        addSnippet(command)
+
                         call.respond(mapOf("OK" to true))
                     }
                 }
