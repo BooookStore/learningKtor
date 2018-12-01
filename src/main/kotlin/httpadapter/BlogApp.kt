@@ -25,6 +25,7 @@ import io.ktor.routing.route
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import repository.InMemorySnippetRepository
 import java.util.*
 
 open class SimpleJWT(secret: String) {
@@ -63,6 +64,13 @@ val snippet: MutableList<Snippet> = Collections.synchronizedList(
 class InvalidCredentialsException(message: String) : RuntimeException(message)
 
 fun Application.main() {
+
+    // init application state
+    InMemorySnippetRepository.saveAll(listOf(
+        Snippet(nextSnippetId(), user = "test", text = "hello"),
+        Snippet(nextSnippetId(), user = "test", text = "world")
+    ))
+
     val simpleJWT = SimpleJWT("my-super-secret-for-jwt")
     embeddedServer(Netty, 8080) {
         install(StatusPages) {
@@ -105,7 +113,7 @@ fun Application.main() {
             route("/snippets") {
                 get {
                     call.respond(mapOf("snippet" to synchronized(snippet) {
-                        snippet.toList()
+                        InMemorySnippetRepository.fetchAll()
                     }))
                 }
                 authenticate("myjwt1") {

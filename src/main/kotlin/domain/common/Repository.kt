@@ -10,4 +10,6 @@ interface Repository<I, E : Entity<I>> {
 
     fun removeAll(entities: Collection<E>) = entities.forEach(::remove)
 
+    fun fetchAll(): Collection<E>
+
 }

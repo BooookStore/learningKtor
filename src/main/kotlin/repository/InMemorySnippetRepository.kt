@@ -17,4 +17,6 @@ object InMemorySnippetRepository : SnippetRepository {
         snippets.remove(entity.rawId)
     }
 
+    override fun fetchAll(): Collection<Snippet> = snippets.map { it.value }.toList()
+
 }
